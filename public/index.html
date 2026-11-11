@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>مدير مصاريف العائلة الذكي | Ryn AI - طرطوس</title>
+    <meta name="description" content="تطبيق ويب ذكي لإدارة مصاريف العائلة وتقسيم الميزانية الشهرية واقتراح المشتريات اليومية بأسعار طرطوس مع المساعد Ryn">
+    <meta name="theme-color" content="#10b981">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="مصاريف العائلة">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #064e3b 0%, #0f172a 45%, #020617 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(52, 211, 153, 0.18);
+        }
+        .fab-ring {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.75), 0 12px 28px -4px rgba(0, 0, 0, 0.7);
+            animation: pulse-ring 2.4s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7), 0 12px 28px -4px rgba(0, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(52, 211, 153, 0), 0 12px 28px -4px rgba(0, 0, 0, 0.7); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0), 0 12px 28px -4px rgba(0, 0, 0, 0.7); }
+        }
+        .resizable-chat {
+            resize: both;
+            overflow: hidden;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.45); border-radius: 9999px; }
+    </style>
+</head>
+<body class="pb-28 selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- شريط الإشعارات العائم (Toast & Daily Notification Banner) -->
+    <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-11/12 max-w-lg"></div>
+
+    <!-- الشريط العلوي (بدون زر تثبيت داخلي؛ التثبيت يتم مباشرة من متصفح كروم) -->
+    <header class="sticky top-0 z-30 glass-card border-b border-emerald-500/20 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- الشعار بالصورة المرفقة والعنوان -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-emerald-400 to-indigo-400 shadow-lg shadow-emerald-950/60 shrink-0">
+                    <img src="data:image/png;base64,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" alt="Ryn Avatar" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 id="appTitle" class="text-lg sm:text-xl font-extrabold text-white tracking-tight">مدير مصاريف العائلة الذكي - طرطوس</h1>
+                        <span id="connectionBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">نشط</span>
+                    </div>
+                    <p id="appSubtitle" class="text-xs text-slate-400">تقسيم الميزانية الشهرية • مقترح مقاضي اليوم بإشعار يومي • اعتماد أسعار طرطوس الفعلية</p>
+                </div>
+            </div>
+
+            <!-- أدوات التحكم العلوية -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- اختيار الموديل والتبديل التلقائي -->
+                <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-xl px-2.5 py-1.5">
+                    <span class="text-xs text-emerald-400 font-bold" id="modelLabel">الموديل:</span>
+                    <select id="globalModelSelect" onchange="handleModelChange(this.value)" class="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
+                        <option value="auto" class="bg-slate-900">⚡ تلقائي ذكي (Auto Failover)</option>
+                        <option value="gemini-2.5-flash" class="bg-slate-900">🚀 Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro" class="bg-slate-900">🧠 Gemini 2.5 Pro</option>
+                        <option value="gemini-2.0-flash" class="bg-slate-900">⚡ Gemini 2.0 Flash</option>
+                        <option value="gemini-1.5-flash" class="bg-slate-900">🛡️ Gemini 1.5 Flash</option>
+                    </select>
+                </div>
+
+                <!-- زر تفعيل وإرسال إشعار مقاضي اليوم -->
+                <button id="dailyNotifyBtn" type="button" onclick="triggerDailyShoppingNotification(true)" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition">
+                    <span>🔔</span>
+                    <span id="notifyBtnText">إشعار مقاضي اليوم</span>
+                </button>
+
+                <!-- زر ملف الذاكرة على الجهاز -->
+                <button id="openMemoryBtn" type="button" onclick="toggleMemoryModal(true)" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/30 text-xs font-bold transition">
+                    <span>💾</span>
+                    <span id="memoryBtnText">ملف الذاكرة</span>
+                    <span id="fileSyncDot" class="w-2 h-2 rounded-full bg-amber-400" title="حالة ربط ملف الجهاز"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
+
+        <!-- بطاقة الإشعار اليومي الذكي لمشتريات اليوم -->
+        <section id="dailyNotificationBanner" class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-400 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-emerald-400/50 shrink-0">
+                    <img src="data:image/png;base64,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" alt="Ryn" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-extrabold text-emerald-400">🔔 توصية Ryn لمقاضي اليوم في طرطوس:</span>
+                        <span id="dailyAllowanceBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 font-bold">مخصص اليوم: 52,500 ل.س</span>
+                    </div>
+                    <p id="dailyBannerSummary" class="text-xs text-slate-200 mt-0.5">
+                        مقترح الشراء اليوم: ربطة خبز (4,000 ل.س) + بندورة طازجة (8,500 ل.س) + لبن رائب (11,000 ل.س) + طبق بيض (18,000 ل.س). اضغط "تم الشراء" بالأسفل وسجل السعر الفعلي ليحفظه Ryn!
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 bg-slate-900/90 border border-slate-700 rounded-xl px-2.5 py-1 text-xs">
+                    <span class="text-slate-400">وقت الإشعار:</span>
+                    <input id="notificationTimeInput" type="time" value="09:00" onchange="updateNotificationTime(this.value)" class="bg-transparent text-emerald-300 font-bold focus:outline-none">
+                </div>
+                <button type="button" onclick="enableBrowserNotifications()" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition">
+                    تفعيل الإشعار اليومي
+                </button>
+            </div>
+        </section>
+
+        <!-- بطاقات الملخص المالي الذكي (بالليرة السورية) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- إجمالي المصاريف -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span id="lblTotalSpent" class="text-xs text-slate-400 font-semibold">إجمالي المصاريف</span>
+                    <span class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-sm">💸</span>
+                </div>
+                <div class="mt-3">
+                    <div class="text-xl sm:text-2xl font-extrabold text-white" id="statTotalSpent">0 ل.س</div>
+                    <div class="text-xs text-slate-400 mt-1">
+                        <span id="statExpenseCount">0</span> <span id="lblOperations">عملية مسجلة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الميزانية الشهرية وتقسيمها -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span id="lblMonthlyBudget" class="text-xs text-slate-400 font-semibold">الميزانية الشهرية</span>
+                    <button id="editBudgetBtn" type="button" onclick="toggleBudgetModal(true)" class="text-xs px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 font-semibold transition">
+                        ✏️ <span id="lblEditBudget">تعديل وتقسيم</span>
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <div class="text-xl sm:text-2xl font-extrabold text-emerald-400" id="statBudget">3,500,000 ل.س</div>
+                    <div class="text-xs text-slate-400 mt-1" id="lblBudgetHint">مقسمة تلقائياً على 6 فئات ومصروف يومي</div>
+                </div>
+            </div>
+
+            <!-- المتبقي من الميزانية -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span id="lblRemaining" class="text-xs text-slate-400 font-semibold">المتبقي من الميزانية</span>
+                    <span class="w-8 h-8 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center text-sm">🛡️</span>
+                </div>
+                <div class="mt-3">
+                    <div class="text-xl sm:text-2xl font-extrabold text-teal-300" id="statRemaining">0 ل.س</div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="budgetProgressBar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 15%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الأسعار المعتمدة وذاكرة الجهاز -->
+            <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span id="lblMemoryStatus" class="text-xs text-slate-400 font-semibold">أسعار طرطوس والذاكرة</span>
+                    <span class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-sm">📍</span>
+                </div>
+                <div class="mt-2 space-y-1">
+                    <div class="text-sm font-bold text-indigo-300 truncate" id="statVerifiedPricesCount">0 أسعار معتمدة من شرائك</div>
+                    <div class="text-xs text-slate-400 flex items-center justify-between">
+                        <span id="statActiveModel" class="truncate">Auto (Gemini 2.5)</span>
+                        <button type="button" onclick="quickSaveMemoryFile()" class="text-emerald-400 hover:underline font-semibold" id="btnQuickSaveFile">حفظ بالملف ⬇️</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم تقسيم الميزانية الشهرية على الفئات + سلة المشتريات اليومية وأسعار طرطوس -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- تقسيم الميزانية الشهرية على الفئات (5 أعمدة) -->
+            <div class="lg:col-span-5 glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-base font-bold text-white">📊 تقسيم الميزانية الشهرية على الفئات</h2>
+                            <p class="text-[11px] text-slate-400">أدخل مبلغك الشهري وسيقسمه Ryn تلقائياً مع حساب مصروف البقالة اليومي</p>
+                        </div>
+                    </div>
+
+                    <!-- إدخال سريع للميزانية الشهرية وتقسيمها -->
+                    <form onsubmit="handleQuickBudgetSplit(event)" class="mt-3 flex gap-2">
+                        <input id="quickMonthlyBudgetInput" type="number" min="1000" step="500" placeholder="أدخل المبلغ الشهري (مثلاً 3500000)..." class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400">
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shrink-0 transition">
+                            قسّم المبلغ ⚡
+                        </button>
+                    </form>
+
+                    <!-- قائمة الفئات المقسمة -->
+                    <div id="categorySplitsContainer" class="mt-4 space-y-2.5">
+                        <!-- يتم ملؤه ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- ملخص مخصص البقالة اليومي -->
+                <div class="mt-4 p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-emerald-300">🛒 مخصص البقالة والطعام اليومي:</div>
+                        <div class="text-[11px] text-slate-400">محسوب تلقائياً (حصة الطعام الشهرية ÷ 30 يوماً)</div>
+                    </div>
+                    <div id="dailyFoodAllowanceValue" class="text-base font-extrabold text-emerald-400">52,500 ل.س/يوم</div>
+                </div>
+            </div>
+
+            <!-- مقترح البقالة اليومي + أسعار طرطوس المعتمدة (7 أعمدة) -->
+            <div class="lg:col-span-7 glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-base font-bold text-white">🛍️ شو اشتري اليوم؟ (مقترح البقال اليومي - أسعار طرطوس)</h2>
+                            <p class="text-[11px] text-slate-400">عند شرائك لأي غرض، عدّل السعر لما دفعته فعلياً واضغط <strong>"تم الشراء ✅"</strong> ليحفظه Ryn ويعتمد سعره أساسياً!</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="generateNewDailyBasket()" class="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 border border-teal-500/30 text-xs font-bold transition">
+                                🔄 اقتراح سلة يوم جديدة
+                            </button>
+                            <button type="button" onclick="switchPriceViewTab()" id="togglePriceTabBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">
+                                📋 كل أسعار طرطوس
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- قائمة أغراض اليوم المقترحة أو دليل أسعار طرطوس الكامل -->
+                    <div id="dailyShoppingListContainer" class="mt-4 space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                        <!-- يتم ملؤه ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- إضافة سلعة جديدة لدليل أسعار طرطوس أو البحث عن سعرها -->
+                <form onsubmit="handleAddOrUpdatePriceItem(event)" class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <input id="newPriceItemName" type="text" required placeholder="اسم السلعة في طرطوس (مثال: كيلو فروج، متة، زيت)..." class="sm:col-span-5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400">
+                    <input id="newPriceItemUnit" type="text" placeholder="الوحدة (1 كغ / ربطة)" class="sm:col-span-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none">
+                    <input id="newPriceItemValue" type="number" min="1" required placeholder="السعر المعتمد (ل.س)" class="sm:col-span-3 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400">
+                    <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-extrabold text-xs transition">
+                        + اعتمد السعر
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- قسم التحليل الذكي والرسم البياني -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- بطاقة تحليل Ryn الذكي -->
+            <div class="lg:col-span-2 glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">✨</span>
+                            <h2 id="lblAiAnalysisTitle" class="text-base font-bold text-white">التحليل المالي الذكي وتوصيات Ryn لأسعار طرطوس</h2>
+                            <span id="analysisModelPill" class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Gemini Multi-Model</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="translateInsightBtn" type="button" onclick="toggleInsightLanguage()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-semibold transition">
+                                🌐 <span id="lblTranslateInsight">ترجمة التحليل</span>
+                            </button>
+                            <button id="runAnalyzeBtn" type="button" onclick="runSmartAnalysis()" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold transition">
+                                🔄 <span id="lblRefreshAnalysis">تحليل الآن</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="aiInsightBox" class="mt-4 p-4 rounded-xl bg-slate-900/75 border border-slate-800 text-sm text-slate-200 leading-relaxed whitespace-pre-line"></div>
+                </div>
+
+                <!-- شريط أوامر الحوار السريعة -->
+                <div class="mt-4 pt-3 border-t border-slate-800/80">
+                    <div class="text-xs text-slate-400 mb-2 font-semibold" id="lblQuickVoicePrompts">💡 جرّب التحدث مع Ryn (اضغط على أي جملة لإرسالها فوراً):</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="sendQuickCommand('اشتريت كيلو سكر بـ 19000 ليرة اعتمد السعر')" class="text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 transition">
+                            ✅ "اشتريت كيلو سكر بـ 19000 اعتمد السعر"
+                        </button>
+                        <button type="button" onclick="sendQuickCommand('قديش سعر ليتر الزيت والرز في طرطوس؟')" class="text-xs px-3 py-1.5 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/25 transition">
+                            📍 "قديش سعر الزيت والرز في طرطوس؟"
+                        </button>
+                        <button type="button" onclick="sendQuickCommand('ميزانيتي الشهرية 4000000 ليرة قسملي ياها')" class="text-xs px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/25 transition">
+                            🎯 "ميزانيتي الشهرية 4 مليون قسملي ياها"
+                        </button>
+                        <button type="button" onclick="sendQuickCommand('عدّل مصروف بنزين ومواصلات سرفيس ليصبح 50000')" class="text-xs px-3 py-1.5 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/25 transition">
+                            ✏️ "عدّل مصروف بنزين ومواصلات ليصبح 50000"
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الرسم البياني لتوزيع الفئات -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 id="lblChartTitle" class="text-base font-bold text-white">توزيع المصاريف حسب الفئة</h2>
+                    <span class="text-xs text-emerald-400 font-semibold" id="topCategoryBadge">الأعلى: --</span>
+                </div>
+                <div class="relative h-64 w-full mt-3 flex items-center justify-center">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- قسم إضافة وتعديل وعرض المصاريف -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- نموذج إضافة / تعديل مصروف -->
+            <div class="glass-card rounded-2xl p-5 h-fit">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 id="formTitle" class="text-base font-bold text-white">➕ إضافة مصروف جديد</h2>
+                    <button id="cancelEditBtn" type="button" onclick="resetExpenseForm()" class="hidden text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">
+                        إلغاء التعديل
+                    </button>
+                </div>
+
+                <form id="expenseForm" onsubmit="handleExpenseSubmit(event)" class="mt-4 space-y-3.5">
+                    <input type="hidden" id="editingExpenseId" value="">
+
+                    <div>
+                        <label for="expName" id="lblExpName" class="block text-xs text-slate-300 font-semibold mb-1">اسم المصروف / الغرض</label>
+                        <input id="expName" type="text" required placeholder="مثال: كيلو بندورة، فاتورة أمبيرات..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-400">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="expAmount" id="lblExpAmount" class="block text-xs text-slate-300 font-semibold mb-1">المبلغ (ل.س)</label>
+                            <input id="expAmount" type="number" step="1" min="1" required placeholder="0" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-400">
+                        </div>
+                        <div>
+                            <label for="expCategory" id="lblExpCategory" class="block text-xs text-slate-300 font-semibold mb-1">الفئة</label>
+                            <select id="expCategory" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-400">
+                                <option value="Food">🍎 بقالة وطعام (Food)</option>
+                                <option value="Utilities">⚡ فواتير وخدمات (Utilities)</option>
+                                <option value="Transport">🚗 مواصلات ووقود (Transport)</option>
+                                <option value="Health">🏥 صحة وأدوية (Health)</option>
+                                <option value="Education">📚 تعليم ودراسة (Education)</option>
+                                <option value="Shopping">🛍️ تسوق وطوارئ (Shopping)</option>
+                                <option value="Other">📦 أخرى (Other)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="expDate" id="lblExpDate" class="block text-xs text-slate-300 font-semibold mb-1">التاريخ</label>
+                            <input id="expDate" type="date" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-400">
+                        </div>
+                        <div>
+                            <label for="expNotes" id="lblExpNotes" class="block text-xs text-slate-300 font-semibold mb-1">ملاحظة</label>
+                            <input id="expNotes" type="text" placeholder="تفاصيل إضافية..." class="w-full px-3 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-400">
+                        </div>
+                    </div>
+
+                    <label class="flex items-center gap-2 text-xs text-emerald-300 cursor-pointer pt-1">
+                        <input type="checkbox" id="adoptPriceCheckbox" checked class="accent-emerald-500 rounded">
+                        <span>اعتماد هذا السعر كسعر أساسي للغرض في ذاكرة طرطوس</span>
+                    </label>
+
+                    <button id="submitExpenseBtn" type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-950/60 transition">
+                        حفظ المصروف واعتماد السعر
+                    </button>
+                </form>
+            </div>
+
+            <!-- قائمة وسجل المصاريف مع الفلترة والتعديل -->
+            <div class="lg:col-span-2 glass-card rounded-2xl p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                    <h2 id="lblExpensesListTitle" class="text-base font-bold text-white">📋 سجل مصاريف العائلة</h2>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input id="searchExpensesInput" type="text" oninput="renderApp()" placeholder="🔍 ابحث عن مصروف..." class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400">
+
+                        <select id="filterCategorySelect" onchange="renderApp()" class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-xs text-white focus:outline-none">
+                            <option value="ALL">كل الفئات</option>
+                            <option value="Food">بقالة وطعام</option>
+                            <option value="Utilities">فواتير وخدمات</option>
+                            <option value="Transport">مواصلات ووقود</option>
+                            <option value="Health">صحة وأدوية</option>
+                            <option value="Education">تعليم ودراسة</option>
+                            <option value="Shopping">تسوق وطوارئ</option>
+                            <option value="Other">أخرى</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="expensesTableContainer" class="mt-4 space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
+                    <!-- يتم ملؤه ديناميكياً -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- الأزرار العائمة: زر الدردشة الدائري بالصورة المرفقة + زر الترجمة العائم -->
+    <div class="fixed bottom-5 left-5 z-40 flex flex-col items-center gap-3">
+        <!-- زر عائم للترجمة الفورية -->
+        <button id="floatingTranslateBtn" type="button" onclick="toggleAppLanguage()" class="w-11 h-11 rounded-full glass-card border border-teal-400/40 text-teal-200 hover:bg-slate-800 flex items-center justify-center text-xs font-extrabold shadow-xl transition" title="ترجمة الواجهة والمحادثات (AR/EN)">
+            <span id="floatingLangLabel">EN</span>
+        </button>
+
+        <!-- زر الدردشة العائم الدائري بالصورة التي أرفقها المستخدم -->
+        <button id="floatingRynBtn" type="button" onclick="toggleChatDrawer()" class="fab-ring relative w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-emerald-400 via-teal-400 to-indigo-500 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center" title="افتح دردشة Ryn الذكي">
+            <img src="data:image/png;base64,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" alt="Ryn Chat" class="w-full h-full rounded-full object-cover">
+            <span id="unreadChatBadge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-950 text-slate-950 text-[10px] font-extrabold flex items-center justify-center">
+                ✓
+            </span>
+        </button>
+    </div>
+
+    <!-- شاشة الدردشة العائمة القابلة للتعديل والتكبير والتخصيص مع Ryn -->
+    <aside id="rynChatDrawer" class="fixed bottom-24 left-5 z-50 w-[94vw] sm:w-[450px] max-h-[82vh] glass-card rounded-3xl shadow-2xl border border-emerald-500/35 flex flex-col overflow-hidden hidden transition-all duration-200">
+        <!-- رأس نافذة الدردشة مع أدوات تعديل شاشة الدردشة -->
+        <div class="p-3.5 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-emerald-400 to-indigo-400 shrink-0">
+                    <img src="data:image/png;base64,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" alt="Ryn" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h3 class="text-sm font-extrabold text-white" id="chatHeaderTitle">Ryn - مدير مصاريف طرطوس</h3>
+                        <span id="chatActiveModelTag" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">Auto</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400" id="chatHeaderSub">حوار مباشر • تعديل الرسائل والشاشة • اعتماد أسعارك</p>
+                </div>
+            </div>
+
+            <!-- أزرار تعديل حجم وإعدادات شاشة الدردشة -->
+            <div class="flex items-center gap-1">
+                <button type="button" onclick="toggleChatCustomizePanel()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 flex items-center justify-center text-xs font-bold" title="تعديل إعدادات ومظهر شاشة الدردشة">
+                    ⚙️
+                </button>
+                <button type="button" onclick="cycleChatWindowSize()" id="chatSizeBtn" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 flex items-center justify-center text-xs font-bold" title="تكبير / تصغير شاشة الدردشة">
+                    ⤢
+                </button>
+                <button type="button" onclick="toggleChatDrawer(false)" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold" title="إغلاق">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- لوحة تعديل شاشة الدردشة (تظهر عند الضغط على ⚙️) -->
+        <div id="chatCustomizePanel" class="hidden p-3 bg-slate-950/95 border-b border-emerald-500/30 space-y-2.5 text-xs">
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-emerald-400">🎨 تعديل وتخصيص شاشة الدردشة:</span>
+                <button type="button" onclick="clearChatHistory()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-[11px]">
+                    🧹 مسح المحادثة
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">اسم المساعد في الشاشة:</label>
+                    <input id="customChatTitleInput" type="text" value="Ryn - مدير مصاريف طرطوس" oninput="updateChatScreenConfig()" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">حجم الخط وحجم النافذة:</label>
+                    <select id="customChatFontSize" onchange="updateChatScreenConfig()" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs">
+                        <option value="text-xs">خط عادي (12px)</option>
+                        <option value="text-sm">خط متوسط واضح (14px)</option>
+                        <option value="text-base">خط كبير مريح (16px)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="text-[11px] text-slate-400">
+                💡 يمكنك أيضاً الضغط على <strong>✏️ تعديل</strong> أو <strong>🗑️ حذف</strong> أسفل أي رسالة داخل الدردشة لتعديل محتواها مباشرة!
+            </div>
+        </div>
+
+        <!-- شريط اختيار الموديل والتبديل التلقائي داخل الدردشة -->
+        <div class="px-3.5 py-2 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-400">الموديل:</span>
+                <select id="chatModelSelect" onchange="handleModelChange(this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-emerald-300 font-semibold focus:outline-none">
+                    <option value="auto">⚡ تلقائي (Auto Failover)</option>
+                    <option value="gemini-2.5-flash">🚀 Gemini 2.5 Flash</option>
+                    <option value="gemini-2.5-pro">🧠 Gemini 2.5 Pro</option>
+                    <option value="gemini-2.0-flash">⚡ Gemini 2.0 Flash</option>
+                    <option value="gemini-1.5-flash">🛡️ Gemini 1.5 Flash</option>
+                </select>
+            </div>
+            <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                <input type="checkbox" id="autoFallbackCheck" checked onchange="toggleAutoFallback(this.checked)" class="accent-emerald-500 rounded">
+                <span id="lblAutoFallback">تبديل تلقائي للموديل</span>
+            </label>
+        </div>
+
+        <!-- سجل الرسائل القابل للتعديل -->
+        <div id="chatMessagesList" class="p-4 space-y-3 overflow-y-auto flex-1 max-h-[370px]">
+            <!-- يتم ملؤه ديناميكياً -->
+        </div>
+
+        <!-- أزرار أوامر سريعة داخل الدردشة -->
+        <div class="px-3 py-2 bg-slate-900/60 border-t border-slate-800/80 flex gap-1.5 overflow-x-auto text-[11px]">
+            <button type="button" onclick="fillChatInput('اشتريت كيلو رز بـ 22000 ليرة اعتمد السعر')" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300">✅ تم شراء + اعتماد سعر</button>
+            <button type="button" onclick="fillChatInput('شو اشتري اليوم من البقالة وكم السعر بطرطوس؟')" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300">🛒 مقاضي اليوم بطرطوس</button>
+            <button type="button" onclick="fillChatInput('عدّل آخر مصروف ليصبح 30000')" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300">✏️ تعديل مصروف</button>
+            <button type="button" onclick="fillChatInput('احذف آخر مصروف')" class="shrink-0 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-300">🗑️ حذف مصروف</button>
+        </div>
+
+        <!-- حقل إرسال الرسالة -->
+        <form id="chatForm" onsubmit="handleChatSubmit(event)" class="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+            <input id="chatInput" type="text" required placeholder="قل لـ Ryn: اشتريت كذا بسعر كذا، أو قسّم الميزانية..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-400">
+            <button id="sendChatBtn" type="submit" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition">
+                إرسال
+            </button>
+        </form>
+    </aside>
+
+    <!-- نافذة إدارة ملف الذاكرة على الجهاز (Device Memory File Modal) -->
+    <div id="memoryModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-xl w-full p-6 border border-teal-500/30 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">💾</span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">ملف الذاكرة الدائمة على الجهاز & أسعار طرطوس المعتمدة</h3>
+                        <p class="text-xs text-slate-400">يحفظ المحادثات والمصاريف والأسعار التي اعتمدتها في ملف على جهازك</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleMemoryModal(false)" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">✕</button>
+            </div>
+
+            <!-- ربط ملف مباشر على الجهاز أو تنزيله -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-400">1. ملف الذاكرة المحلي على جهازك (ryn-family-memory.json)</span>
+                    <span id="deviceFileStatusText" class="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">حفظ تلقائي بالمتصفح + ملف قابل للتنزيل</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    اربط ملف <code>.json</code> مباشر على جهازك ليحفظ التطبيق داخله تلقائياً كل محادثة، وكل مصروف، وكل سعر اعتمدته في طرطوس:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    <button type="button" onclick="connectLiveDeviceFile()" class="px-3 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition">
+                        🔗 ربط ملف حي على الجهاز
+                    </button>
+                    <button type="button" onclick="quickSaveMemoryFile()" class="px-3 py-2.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 border border-teal-500/30 font-bold text-xs transition">
+                        ⬇️ تنزيل ملف الذاكرة الآن
+                    </button>
+                    <label class="px-3 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 font-bold text-xs text-center cursor-pointer transition">
+                        📂 استرجاع من ملف جهازك
+                        <input type="file" id="importMemoryFileInput" accept=".json" onchange="handleImportMemoryFile(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- ذاكرة Ryn الدائمة -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <span class="text-xs font-bold text-indigo-400">2. ذاكرة Ryn الدائمة (قواعد العائلة والملاحظات المحفوظة)</span>
+                <div id="memoryFactsList" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+                <form onsubmit="handleAddMemoryFact(event)" class="flex gap-2 pt-1">
+                    <input id="newMemoryFactInput" type="text" required placeholder="أضف معلومة يتذكرها Ryn دائماً..." class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-400">
+                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-extrabold text-xs">إضافة</button>
+                </form>
+            </div>
+
+            <!-- مفتاح Gemini API -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-teal-300">3. مفتاح Gemini API (Render / محلي)</span>
+                    <span id="serverKeyBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">يُقرأ تلقائياً من Render</span>
+                </div>
+                <div class="flex gap-2">
+                    <input id="customGeminiKeyInput" type="password" placeholder="مفتاح Gemini اختياري (اتركه فارغاً لاستخدام مفتاح Render)..." class="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none">
+                    <button type="button" onclick="saveCustomApiKey()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل وتقسيم الميزانية الشهرية على الفئات -->
+    <div id="budgetModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card rounded-3xl max-w-md w-full p-6 border border-emerald-500/30 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold text-white">🎯 تقسيم الميزانية الشهرية على الفئات</h3>
+                <button type="button" onclick="toggleBudgetModal(false)" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300">✕</button>
+            </div>
+            <form onsubmit="handleBudgetSave(event)" class="space-y-3">
+                <div>
+                    <label for="budgetInputModal" class="block text-xs text-slate-300 mb-1">إجمالي المبلغ الشهري (ل.س)</label>
+                    <input id="budgetInputModal" type="number" step="1000" min="1000" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-400">
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <label class="text-slate-400">🍎 بقالة وطعام (%)</label>
+                        <input id="splitFoodInput" type="number" min="5" max="90" value="45" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">⚡ فواتير وخدمات (%)</label>
+                        <input id="splitUtilitiesInput" type="number" min="0" max="80" value="15" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">🚗 مواصلات ووقود (%)</label>
+                        <input id="splitTransportInput" type="number" min="0" max="80" value="12" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">🏥 صحة وأدوية (%)</label>
+                        <input id="splitHealthInput" type="number" min="0" max="80" value="10" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">📚 تعليم ودراسة (%)</label>
+                        <input id="splitEducationInput" type="number" min="0" max="80" value="8" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">🛍️ تسوق وطوارئ (%)</label>
+                        <input id="splitShoppingInput" type="number" min="0" max="80" value="10" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs">حفظ التقسيم وتحديث سلة اليوم</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // الحالة العامة للتطبيق وقاعدة أسعار طرطوس (State & Tartus Price Memory)
+        // ============================================================================
+        const STORAGE_KEY = 'ryn_family_expense_memory_v3';
+        let fileHandle = null;
+        let chartInstance = null;
+        let showAllPricesMode = false;
+        let chatSizeMode = 'normal'; // normal | wide | fullscreen
+        let editingChatIndex = null;
+
+        const DEFAULT_TARTUS_PRICES = [
+            { id: 'bread', name: 'ربطة خبز', unit: 'ربطة', price: 4000, category: 'Food', essential: true, userVerified: false },
+            { id: 'tomato', name: 'بندورة طازجة', unit: '1 كغ', price: 8500, category: 'Food', essential: true, userVerified: false },
+            { id: 'cucumber', name: 'خيار بلدي', unit: '1 كغ', price: 7500, category: 'Food', essential: true, userVerified: false },
+            { id: 'potato', name: 'بطاطا', unit: '1 كغ', price: 9000, category: 'Food', essential: true, userVerified: false },
+            { id: 'yogurt', name: 'لبن رائب', unit: '1 كغ', price: 11000, category: 'Food', essential: true, userVerified: false },
+            { id: 'eggs', name: 'طبق بيض (10 حبات)', unit: '10 حبات', price: 18000, category: 'Food', essential: true, userVerified: false },
+            { id: 'cheese', name: 'جبنة بيضاء بلدية', unit: '500 غ', price: 28000, category: 'Food', essential: false, userVerified: false },
+            { id: 'sugar', name: 'سكر أبيض', unit: '1 كغ', price: 18000, category: 'Food', essential: false, userVerified: false },
+            { id: 'rice', name: 'رز مصري/قصير', unit: '1 كغ', price: 21000, category: 'Food', essential: false, userVerified: false },
+            { id: 'oil', name: 'زيت نباتي للطبخ', unit: '1 ليتر', price: 37000, category: 'Food', essential: false, userVerified: false },
+            { id: 'chicken', name: 'فروج منظف', unit: '1 كغ', price: 45000, category: 'Food', essential: false, userVerified: false },
+            { id: 'chickpeas', name: 'حمص حب / عدس', unit: '1 كغ', price: 25000, category: 'Food', essential: false, userVerified: false },
+            { id: 'yerba', name: 'متة / شاي للبيت', unit: 'علبة', price: 16000, category: 'Food', essential: false, userVerified: false },
+            { id: 'fuel', name: 'بنزين / مواصلات سرفيس', unit: 'يومي', price: 15000, category: 'Transport', essential: true, userVerified: false }
+        ];
+
+        const CATEGORY_LABELS = {
+            ar: {
+                Food: '🍎 بقالة وطعام يومي',
+                Utilities: '⚡ فواتير وخدمات',
+                Transport: '🚗 مواصلات ووقود',
+                Health: '🏥 صحة وأدوية',
+                Education: '📚 تعليم ودراسة',
+                Shopping: '🛍️ تسوق وطوارئ',
+                Other: '📦 أخرى'
+            },
+            en: {
+                Food: '🍎 Daily Groceries & Food',
+                Utilities: '⚡ Utilities & Bills',
+                Transport: '🚗 Transport & Fuel',
+                Health: '🏥 Health & Pharmacy',
+                Education: '📚 Education',
+                Shopping: '🛍️ Shopping & Emergency',
+                Other: '📦 Other'
+            }
+        };
+
+        let state = {
+            lang: 'ar',
+            insightLang: 'ar',
+            token: null,
+            selectedModel: 'auto',
+            lastModelUsed: 'gemini-2.5-flash',
+            autoFallback: true,
+            customApiKey: '',
+            chatTitle: 'Ryn - مدير مصاريف طرطوس',
+            chatFontSize: 'text-xs',
+            dailyNotificationTime: '09:00',
+            lastNotifiedDate: '',
+            budget: 3500000,
+            categorySplits: {
+                Food: 45,
+                Utilities: 15,
+                Transport: 12,
+                Health: 10,
+                Education: 8,
+                Shopping: 10
+            },
+            priceBook: JSON.parse(JSON.stringify(DEFAULT_TARTUS_PRICES)),
+            dailyBasketIds: ['bread', 'tomato', 'yogurt', 'eggs', 'cucumber'],
+            expenses: [
+                { id: 1, name: 'ربطة خبز + لبن رائب + بندورة', amount: 23500, category: 'Food', date: '2026-11-10', notes: 'مقاضي بقالة يومية - طرطوس' },
+                { id: 2, name: 'فواتير كهرباء وإنترنت', amount: 125000, category: 'Utilities', date: '2026-11-08', notes: 'فاتورة شهرية ثابتة' },
+                { id: 3, name: 'بنزين ومواصلات سرفيس', amount: 45000, category: 'Transport', date: '2026-11-09', notes: 'مواصلات داخل طرطوس' }
+            ],
+            memoryFacts: [
+                'المدينة المعتمدة للأسعار: طرطوس - سوريا (بالليرة السورية ل.س).',
+                'عندما يشتري حيدر أي غرض ويحدد سعره الفعلي، يتم اعتماده فوراً كسعر أساسي في دليل أسعار طرطوس.'
+            ],
+            chatHistory: [
+                {
+                    id: 'welcome-1',
+                    sender: 'ryn',
+                    text: 'أهلاً بك يا حيدر! أنا Ryn مساعدك الذكي في طرطوس. قسّمت لك الميزانية الشهرية على الفئات وجهزت لك مقترح مشتريات اليوم مع أسعار طرطوس التقريبية. أي غرض تشتريه اضغط "تم الشراء ✅" أو أخبرني بسعره الفعلي وسأعتمده فوراً في ذاكرتي!',
+                    translation: 'Welcome Haidar! I am Ryn, your smart assistant in Tartus. I split your monthly budget across categories and prepared today’s shopping list with approximate Tartus prices. Whenever you buy an item, click Purchased or tell me your actual price and I will lock it in!',
+                    showTranslation: false,
+                    modelUsed: 'gemini-2.5-flash',
+                    actionsExecuted: [],
+                    timestamp: new Date().toISOString()
+                }
+            ],
+            lastAnalysis: {
+                insight: '📊 تحليل ميزانية طرطوس الذكي:\n• الميزانية الشهرية: 3,500,000 ل.س مقسمة على 6 فئات أساسية.\n• مخصص البقالة والطعام اليومي: 52,500 ل.س يومياً.\n• مقترح اليوم جاهز بالأسفل مع أسعار طرطوس التقريبية — بمجرد الشراء وإدخال سعرك الفعلي سيعتمده النظام تلقائياً!',
+                insightEn: '📊 Smart Tartus Budget Analysis:\n• Monthly Budget: 3,500,000 SYP split across 6 essential categories.\n• Daily Grocery Allowance: 52,500 SYP/day.\n• Today’s suggested basket is ready below with approximate Tartus prices!'
+            }
+        };
+
+        function formatSyp(val) {
+            return Number(val || 0).toLocaleString('en-US') + (state.lang === 'ar' ? ' ل.س' : ' SYP');
+        }
+
+        function buildApiEndpoint(path) {
+            const origin = window.location.origin || '';
+            if (origin.startsWith('http://') || origin.startsWith('https://')) {
+                return origin + path;
+            }
+            return path;
+        }
+
+        async function callBackendApi(path, options = {}) {
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            if (state.token) {
+                headers['Authorization'] = 'Bearer ' + state.token;
+            }
+            const response = await window['fetch'](buildApiEndpoint(path), {
+                ...options,
+                headers
+            });
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return await response.json();
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = type === 'error'
+                ? 'bg-rose-950/95 border-rose-500/50 text-rose-200'
+                : type === 'info'
+                ? 'bg-indigo-950/95 border-indigo-500/50 text-indigo-200'
+                : 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200';
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center justify-between gap-3 transition-all ${colors}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ============================================================================
+        // إدارة الذاكرة المحلية وملف الجهاز (Local Storage + Device File Sync)
+        // ============================================================================
+        function loadLocalMemory() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state = {
+                        ...state,
+                        ...parsed,
+                        expenses: Array.isArray(parsed.expenses) ? parsed.expenses : state.expenses,
+                        priceBook: Array.isArray(parsed.priceBook) && parsed.priceBook.length > 0 ? parsed.priceBook : state.priceBook,
+                        memoryFacts: Array.isArray(parsed.memoryFacts) ? parsed.memoryFacts : state.memoryFacts,
+                        chatHistory: Array.isArray(parsed.chatHistory) ? parsed.chatHistory : state.chatHistory
+                    };
+                }
+            } catch (err) {
+                console.warn('Local memory read skipped:', err);
+            }
+        }
+
+        async function persistMemoryEverywhere() {
+            const snapshot = {
+                version: '3.0.0',
+                savedAt: new Date().toISOString(),
+                selectedModel: state.selectedModel,
+                autoFallback: state.autoFallback,
+                chatTitle: state.chatTitle,
+                chatFontSize: state.chatFontSize,
+                dailyNotificationTime: state.dailyNotificationTime,
+                budget: state.budget,
+                categorySplits: state.categorySplits,
+                priceBook: state.priceBook,
+                dailyBasketIds: state.dailyBasketIds,
+                expenses: state.expenses,
+                memoryFacts: state.memoryFacts,
+                chatHistory: state.chatHistory,
+                lastAnalysis: state.lastAnalysis
+            };
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+            } catch (e) {}
+
+            if (fileHandle) {
+                try {
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(JSON.stringify(snapshot, null, 2));
+                    await writable.close();
+                    updateFileSyncIndicator(true);
+                } catch (err) {
+                    updateFileSyncIndicator(false);
+                }
+            }
+        }
+
+        function updateFileSyncIndicator(isConnected) {
+            const dot = document.getElementById('fileSyncDot');
+            const statusText = document.getElementById('deviceFileStatusText');
+            if (dot) {
+                dot.className = isConnected
+                    ? 'w-2 h-2 rounded-full bg-emerald-400 animate-ping'
+                    : 'w-2 h-2 rounded-full bg-amber-400';
+            }
+            if (statusText) {
+                statusText.textContent = isConnected
+                    ? '✅ مربوط بملف حي على جهازك (يحفظ تلقائياً)'
+                    : 'حفظ تلقائي بالمتصفح + ملف قابل للتنزيل';
+            }
+        }
+
+        async function connectLiveDeviceFile() {
+            if (typeof window.showSaveFilePicker === 'function') {
+                try {
+                    fileHandle = await window.showSaveFilePicker({
+                        suggestedName: 'ryn-tartus-memory.json',
+                        types: [{
+                            description: 'Ryn Family Memory JSON',
+                            accept: { 'application/json': ['.json'] }
+                        }]
+                    });
+                    await persistMemoryEverywhere();
+                    showToast('✅ تم ربط ملف الذاكرة على جهازك! سيحفظ المحادثات والأسعار المعتمدة تلقائياً.');
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        quickSaveMemoryFile();
+                    }
+                    return;
+                }
+            }
+            quickSaveMemoryFile();
+        }
+
+        function quickSaveMemoryFile() {
+            const snapshot = {
+                version: '3.0.0',
+                savedAt: new Date().toISOString(),
+                budget: state.budget,
+                categorySplits: state.categorySplits,
+                priceBook: state.priceBook,
+                expenses: state.expenses,
+                memoryFacts: state.memoryFacts,
+                chatHistory: state.chatHistory
+            };
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ryn-tartus-memory-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('💾 تم حفظ وتنزيل ملف الذاكرة والأسعار المعتمدة على جهازك!');
+        }
+
+        function handleImportMemoryFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported.expenses)) state.expenses = imported.expenses;
+                    if (Number(imported.budget) > 0) state.budget = Number(imported.budget);
+                    if (Array.isArray(imported.priceBook)) state.priceBook = imported.priceBook;
+                    if (imported.categorySplits) state.categorySplits = imported.categorySplits;
+                    if (Array.isArray(imported.memoryFacts)) state.memoryFacts = imported.memoryFacts;
+                    if (Array.isArray(imported.chatHistory)) state.chatHistory = imported.chatHistory;
+
+                    await persistMemoryEverywhere();
+                    renderApp();
+                    showToast('✅ تم استرجاع كافة المحادثات والمصاريف وأسعار طرطوس من ملف جهازك!');
+                } catch (err) {
+                    showToast('⚠️ ملف الذاكرة غير صالح.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================================================
+        // نظام الإشعار اليومي ومقترح البقالة اليومي في طرطوس
+        // ============================================================================
+        function getDailyGroceryAllowance() {
+            const foodPercent = Number(state.categorySplits?.Food) || 45;
+            return Math.round(((state.budget * foodPercent) / 100) / 30);
+        }
+
+        function generateNewDailyBasket() {
+            const allowance = getDailyGroceryAllowance();
+            const foodItems = state.priceBook.filter(p => p.category === 'Food');
+            if (foodItems.length === 0) return;
+
+            // اختيار تشكيلة يومية متوازنة ضمن المخصص اليومي قدر الإمكان
+            const shuffled = [...foodItems].sort(() => Math.random() - 0.5);
+            const picked = [];
+            let runningTotal = 0;
+
+            // دائماً نبدأ بالأساسيات مثل الخبز إن وجد
+            const bread = foodItems.find(i => i.id === 'bread' || i.name.includes('خبز'));
+            if (bread) {
+                picked.push(bread.id);
+                runningTotal += Number(bread.price);
+            }
+
+            for (const item of shuffled) {
+                if (picked.includes(item.id)) continue;
+                if (runningTotal + Number(item.price) <= allowance * 1.15 || picked.length < 3) {
+                    picked.push(item.id);
+                    runningTotal += Number(item.price);
+                }
+                if (picked.length >= 5) break;
+            }
+
+            state.dailyBasketIds = picked;
+            persistMemoryEverywhere();
+            renderApp();
+            showToast('🛒 تم توليد اقتراح سلة مشتريات يومية جديدة حسب ميزانيتك وأسعار طرطوس!');
+        }
+
+        function buildDailyNotificationMessage() {
+            const allowance = getDailyGroceryAllowance();
+            const basketItems = state.priceBook.filter(p => state.dailyBasketIds.includes(p.id));
+            const totalCost = basketItems.reduce((s, i) => s + (Number(i.price) || 0), 0);
+            const itemsSummary = basketItems.map(i => `${i.name} (${Number(i.price).toLocaleString()} ل.س)`).join(' + ');
+            return {
+                title: `🛒 مقاضي اليوم في طرطوس (مخصصك: ${allowance.toLocaleString()} ل.س)`,
+                body: `اقترح عليك اليوم: ${itemsSummary} | الإجمالي التقريبي: ${totalCost.toLocaleString()} ل.س. بعد الشراء اضغط "تم الشراء" وسجل سعرك الفعلي!`,
+                totalCost,
+                allowance
+            };
+        }
+
+        async function enableBrowserNotifications() {
+            if (!('Notification' in window)) {
+                triggerDailyShoppingNotification(true);
+                return;
+            }
+            try {
+                const perm = await Notification.requestPermission();
+                if (perm === 'granted') {
+                    triggerDailyShoppingNotification(true);
+                } else {
+                    showToast('🔔 تم تفعيل المنبه اليومي داخل التطبيق!', 'info');
+                    triggerDailyShoppingNotification(true);
+                }
+            } catch (_) {
+                triggerDailyShoppingNotification(true);
+            }
+        }
+
+        async function triggerDailyShoppingNotification(manualTrigger = false) {
+            const info = buildDailyNotificationMessage();
+            showToast(`${info.title} — ${info.body}`);
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const reg = await navigator.serviceWorker.getRegistration();
+                        if (reg && reg.showNotification) {
+                            await reg.showNotification(info.title, {
+                                body: info.body,
+                                icon: '/icons/icon-192.png',
+                                badge: '/icons/icon-192.png'
+                            });
+                            return;
+                        }
+                    }
+                    new Notification(info.title, { body: info.body, icon: '/icons/icon-192.png' });
+                } catch (_) {}
+            }
+
+            if (manualTrigger) {
+                state.lastNotifiedDate = new Date().toISOString().split('T')[0];
+                persistMemoryEverywhere();
+            }
+        }
+
+        function updateNotificationTime(val) {
+            if (!val) return;
+            state.dailyNotificationTime = val;
+            persistMemoryEverywhere();
+            showToast(`⏰ تم ضبط موعد إشعار المشتريات اليومي على الساعة ${val}`);
+        }
+
+        // فحص دوري كل دقيقة لإرسال الإشعار اليومي تلقائياً في الوقت المحدد
+        setInterval(() => {
+            const now = new Date();
+            const hhmm = now.toTimeString().slice(0, 5);
+            const todayStr = now.toISOString().split('T')[0];
+            if (hhmm === state.dailyNotificationTime && state.lastNotifiedDate !== todayStr) {
+                state.lastNotifiedDate = todayStr;
+                triggerDailyShoppingNotification(false);
+            }
+        }, 30000);
+
+        // ============================================================================
+        // تنفيذ "تم الشراء ✅" واعتماد السعر الفعلي في ذاكرة طرطوس
+        // ============================================================================
+        async function markItemAsPurchased(itemId) {
+            const itemIdx = state.priceBook.findIndex(p => p.id === itemId);
+            if (itemIdx === -1) return;
+
+            const item = state.priceBook[itemIdx];
+            const inputEl = document.getElementById(`actualPriceInput_${itemId}`);
+            const actualPrice = inputEl ? Number(inputEl.value) : Number(item.price);
+
+            if (!Number.isFinite(actualPrice) || actualPrice <= 0) {
+                showToast('⚠️ يرجى إدخال سعر فعلي صحيح أكبر من صفر.', 'error');
+                return;
+            }
+
+            const oldPrice = item.price;
+            // 1. اعتماد السعر الفعلي في ذاكرة أسعار طرطوس
+            state.priceBook[itemIdx].price = Math.round(actualPrice);
+            state.priceBook[itemIdx].userVerified = true;
+            state.priceBook[itemIdx].updatedAt = new Date().toISOString().split('T')[0];
+
+            // 2. تسجيل العملية في سجل المصاريف
+            const newExpense = {
+                id: Date.now(),
+                name: `${item.name} (${item.unit})`,
+                amount: Math.round(actualPrice),
+                category: item.category || 'Food',
+                date: new Date().toISOString().split('T')[0],
+                notes: actualPrice !== oldPrice
+                    ? `تم الشراء واعتماد السعر الجديد (${actualPrice.toLocaleString()} بدل ${oldPrice.toLocaleString()} ل.س)`
+                    : 'تم الشراء بالسعر المعتمد في طرطوس'
+            };
+            state.expenses.push(newExpense);
+
+            // 3. إضافة إشعار في الدردشة بأن Ryn اعتمد السعر
+            state.chatHistory.push({
+                id: 'r-learn-' + Date.now(),
+                sender: 'ryn',
+                text: `✅ تم شراء "${item.name}" بسعر ${Math.round(actualPrice).toLocaleString()} ل.س! سجلت المصروف في حسابات اليوم واعتمدت هذا السعر كمرجع أساسي في ذاكرة أسعار طرطوس.`,
+                translation: `✅ Purchased "${item.name}" for ${Math.round(actualPrice).toLocaleString()} SYP! Logged the expense and adopted this price as my baseline in Tartus price memory.`,
+                showTranslation: state.lang === 'en',
+                modelUsed: 'Ryn Price Memory',
+                actionsExecuted: [{ type: 'تم الشراء واعتماد السعر' }],
+                timestamp: new Date().toISOString()
+            });
+
+            try {
+                await callBackendApi('/api/expenses', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        ...newExpense,
+                        adoptPrice: true
+                    })
+                });
+            } catch (_) {}
+
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast(`✅ تم شراء "${item.name}" بـ ${Math.round(actualPrice).toLocaleString()} ل.س وتم اعتماد السعر في ذاكرة Ryn!`);
+        }
+
+        async function handleAddOrUpdatePriceItem(event) {
+            event.preventDefault();
+            const name = document.getElementById('newPriceItemName').value.trim();
+            const unit = document.getElementById('newPriceItemUnit').value.trim() || '1 كغ';
+            const price = Number(document.getElementById('newPriceItemValue').value);
+
+            if (!name || !Number.isFinite(price) || price <= 0) return;
+
+            const existingIdx = state.priceBook.findIndex(p => p.name === name || p.name.includes(name));
+            if (existingIdx !== -1) {
+                state.priceBook[existingIdx].price = Math.round(price);
+                state.priceBook[existingIdx].unit = unit;
+                state.priceBook[existingIdx].userVerified = true;
+            } else {
+                const newId = 'item-' + Date.now();
+                state.priceBook.push({
+                    id: newId,
+                    name,
+                    unit,
+                    price: Math.round(price),
+                    category: 'Food',
+                    essential: true,
+                    userVerified: true
+                });
+                if (state.dailyBasketIds.length < 6) {
+                    state.dailyBasketIds.push(newId);
+                }
+            }
+
+            document.getElementById('newPriceItemName').value = '';
+            document.getElementById('newPriceItemUnit').value = '';
+            document.getElementById('newPriceItemValue').value = '';
+
+            try {
+                await callBackendApi('/api/prices/adopt', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, unit, price })
+                });
+            } catch (_) {}
+
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast(`📍 تم اعتماد سعر "${name}" (${Math.round(price).toLocaleString()} ل.س) في دليل طرطوس!`);
+        }
+
+        function switchPriceViewTab() {
+            showAllPricesMode = !showAllPricesMode;
+            const btn = document.getElementById('togglePriceTabBtn');
+            if (btn) {
+                btn.textContent = showAllPricesMode ? '🛒 عرض سلة مقاضي اليوم فقط' : '📋 كل أسعار طرطوس';
+            }
+            renderDailyShoppingList();
+        }
+
+        // ============================================================================
+        // المحرك الذكي المحلي للحوار (يدعم أسعار طرطوس، الشراء، وتقسيم الميزانية)
+        // ============================================================================
+        function inferCategoryLocal(text) {
+            const t = (text || '').toLowerCase();
+            if (/كهرباء|ماء|مياه|غاز|إنترنت|انترنت|نت|فواتير|فاتورة|إيجار|ايجار|أمبير|امبير|bill|electric|water|internet|rent/.test(t)) return 'Utilities';
+            if (/وقود|بنزين|مازوت|سيارة|تكسي|تاكسي|مواصلات|باص|سرفيس|transport|fuel|gas|car|taxi/.test(t)) return 'Transport';
+            if (/طعام|أكل|اكل|سوبرماركت|خضار|فواكه|لحم|فروج|خبز|لبن|جبنة|بيض|زيت|سكر|رز|متة|مطعم|قهوة|سوق|بقالة|مقاضي|بندورة|بطاطا|خيار|food|grocery|market/.test(t)) return 'Food';
+            if (/دواء|طبيب|مشفى|مستشفى|صيدلية|علاج|صحة|health|doctor|medicine|pharmacy/.test(t)) return 'Health';
+            if (/مدرسة|جامعة|كتب|قرطاسية|دورة|تعليم|education|school|course|book/.test(t)) return 'Education';
+            if (/ملابس|تسوق|هدية|ترفيه|ألعاب|سينما|shopping|entertainment|clothes|gift/.test(t)) return 'Shopping';
+            return 'Other';
+        }
+
+        function executeLocalConversationalCommand(userMessage) {
+            const normalized = (userMessage || '').trim().replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            const actionsExecuted = [];
+
+            // 1. شراء سلعة واعتماد سعرها الفعلي في طرطوس
+            if (/(?:تم شراء|تم الشراء|اشتريت|جبنا|اخذت|أخذت|اعتمد السعر|اعتمد سعر|سعره بطرطوس)/i.test(normalized)) {
+                const amountMatch = normalized.match(/(\d+(?:\.\d+)?)/);
+                if (amountMatch) {
+                    let amount = Number(amountMatch[1]);
+                    if (/ألف|الف/.test(normalized) && amount < 1000) amount *= 1000;
+                    if (/مليون/.test(normalized) && amount < 1000) amount *= 1000000;
+
+                    let itemName = normalized
+                        .replace(/(?:تم شراء|تم الشراء|اشتريت|جبنا|اخذت|أخذت|اعتمد السعر|اعتمد سعر|سعره بطرطوس|بسعر|بقيمة|بمبلغ|بـ|ليرة|سورية|ألف|الف|اليوم|اعتمد)/gi, ' ')
+                        .replace(amountMatch[0], ' ')
+                        .replace(/[،,.:؛!؟?\-+]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    if (!itemName || itemName.length < 2) itemName = 'مشتريات بقالة يومية';
+                    const category = inferCategoryLocal(itemName);
+
+                    const expItem = {
+                        id: Date.now(),
+                        name: itemName,
+                        amount: Math.round(amount),
+                        category,
+                        date: new Date().toISOString().split('T')[0],
+                        notes: 'تم الشراء واعتماد السعر عبر الحوار'
+                    };
+                    state.expenses.push(expItem);
+
+                    const pIdx = state.priceBook.findIndex(p => p.name.includes(itemName) || itemName.includes(p.name.split(' ')[0]));
+                    if (pIdx !== -1) {
+                        state.priceBook[pIdx].price = Math.round(amount);
+                        state.priceBook[pIdx].userVerified = true;
+                    } else {
+                        state.priceBook.push({
+                            id: 'chat-' + Date.now(),
+                            name: itemName,
+                            unit: 'وحدة',
+                            price: Math.round(amount),
+                            category,
+                            essential: true,
+                            userVerified: true
+                        });
+                    }
+
+                    actionsExecuted.push({ type: 'تم الشراء واعتماد السعر' });
+                    return {
+                        text: `✅ سجلت شراء "${itemName}" بمبلغ ${Math.round(amount).toLocaleString()} ل.س، واعتمدت هذا السعر الفعلي كسعر أساسي في ذاكرة أسعار طرطوس لحسابات الأيام القادمة!`,
+                        translation: `✅ Logged purchase of "${itemName}" at ${Math.round(amount).toLocaleString()} SYP and adopted this actual price in my Tartus price memory!`,
+                        actionsExecuted,
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+            }
+
+            // 2. السؤال عن أسعار طرطوس أو "شو اشتري اليوم"
+            if (/(?:شو اشتري|ماذا اشتري|مقاضي اليوم|سعر|أسعار|اسعار|بكم|قديش|طرطوس)/i.test(normalized) && !/(?:أضف|اضف|عدّل|عدل|احذف)/i.test(normalized)) {
+                const matched = state.priceBook.filter(p => normalized.includes(p.name.split(' ')[0]) || normalized.includes(p.name));
+                if (matched.length > 0) {
+                    const lines = matched.map(m => `• ${m.name} (${m.unit}): ${Number(m.price).toLocaleString()} ل.س (${m.userVerified ? 'معتمد من شرائك ✅' : 'تقريبي في طرطوس 📍'})`).join('\n');
+                    return {
+                        text: `📍 إليك الأسعار الحالية في طرطوس:\n${lines}\n\nعندما تشتري أي غرض منها، قل لي: "اشتريت ${matched[0].name} بـ ..." وسأعتمد سعرك الفعلي فوراً!`,
+                        translation: `📍 Current prices in Tartus:\n${lines}\n\nTell me the actual price you paid after buying and I will lock it in!`,
+                        actionsExecuted: [],
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+
+                const info = buildDailyNotificationMessage();
+                return {
+                    text: `${info.title}\n${info.body}`,
+                    translation: `Daily Tartus Basket (Allowance: ${info.allowance.toLocaleString()} SYP) — Estimated total: ${info.totalCost.toLocaleString()} SYP.`,
+                    actionsExecuted: [],
+                    modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                };
+            }
+
+            // 3. تقسيم أو تعديل الميزانية الشهرية بالحوار
+            const budgetMatch = normalized.match(/(?:ميزانيتنا|الميزانية|ميزانية|ميزانيتي|راتبي|مبلغ|قسّم|قسم|budget)\s*(?:الشهرية|الشهري)?\s*(?:إلى|الى|بـ|ب|هي|=|:|خليها|اجعلها|تكون|خلي)?\s*(\d+(?:\.\d+)?)/i);
+            if (budgetMatch) {
+                let newBudget = Number(budgetMatch[1]);
+                if (/مليون/.test(normalized) && newBudget < 1000) newBudget *= 1000000;
+                if (/ألف|الف/.test(normalized) && newBudget < 10000) newBudget *= 1000;
+                if (newBudget > 0) {
+                    state.budget = Math.round(newBudget);
+                    const dailyFood = getDailyGroceryAllowance();
+                    actionsExecuted.push({ type: 'تقسيم الميزانية الشهرية' });
+                    return {
+                        text: `🎯 تم اعتماد الميزانية الشهرية (${state.budget.toLocaleString()} ل.س) وتقسيمها على الفئات! مخصص البقالة والطعام اليومي أصبح ${dailyFood.toLocaleString()} ل.س/يوم.`,
+                        translation: `🎯 Monthly budget set to ${state.budget.toLocaleString()} SYP and split across categories! Daily grocery allowance is ${dailyFood.toLocaleString()} SYP/day.`,
+                        actionsExecuted,
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+            }
+
+            // 4. حذف مصروف بالحوار
+            if (/(?:احذف|امسح|شيل|الغ|إلغاء|حذف|delete|remove)/i.test(normalized)) {
+                let targetIdx = -1;
+                if (/(?:آخر|اخر|last|latest)/i.test(normalized) && state.expenses.length > 0) {
+                    targetIdx = state.expenses.length - 1;
+                } else {
+                    targetIdx = state.expenses.findIndex(e => e.name && normalized.includes(e.name));
+                }
+                if (targetIdx !== -1) {
+                    const removed = state.expenses.splice(targetIdx, 1)[0];
+                    actionsExecuted.push({ type: 'حذف مصروف' });
+                    return {
+                        text: `🗑️ تم حذف مصروف "${removed.name}" (${Number(removed.amount).toLocaleString()} ل.س) من السجل.`,
+                        translation: `🗑️ Deleted expense "${removed.name}" (${Number(removed.amount).toLocaleString()} SYP).`,
+                        actionsExecuted,
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+            }
+
+            // 5. تعديل مصروف بالحوار
+            if (/(?:عدل|عدّل|غير|غيّر|حدث|حدّث|خلي|اجعل|update|edit|change|modify)/i.test(normalized)) {
+                const nums = [...normalized.matchAll(/(\d+(?:\.\d+)?)/g)].map(m => Number(m[1]));
+                let newAmount = nums.length > 0 ? nums[nums.length - 1] : null;
+                if (newAmount && /ألف|الف/.test(normalized) && newAmount < 1000) newAmount *= 1000;
+                let targetIdx = -1;
+                if (/(?:آخر|اخر|last)/.test(normalized) && state.expenses.length > 0) {
+                    targetIdx = state.expenses.length - 1;
+                } else {
+                    targetIdx = state.expenses.findIndex(e => e.name && normalized.includes(e.name));
+                    if (targetIdx === -1) {
+                        targetIdx = state.expenses.findIndex(exp => {
+                            const words = (exp.name || '').split(/\s+/).filter(w => w.length > 2);
+                            return words.some(w => normalized.includes(w));
+                        });
+                    }
+                }
+                if (targetIdx !== -1 && newAmount && newAmount > 0) {
+                    const oldAmount = state.expenses[targetIdx].amount;
+                    state.expenses[targetIdx].amount = Math.round(newAmount);
+                    actionsExecuted.push({ type: 'تعديل مصروف' });
+                    return {
+                        text: `✏️ تم تعديل مصروف "${state.expenses[targetIdx].name}" ليصبح ${Math.round(newAmount).toLocaleString()} ل.س بدلاً من ${Number(oldAmount).toLocaleString()} ل.س.`,
+                        translation: `✏️ Updated "${state.expenses[targetIdx].name}" to ${Math.round(newAmount).toLocaleString()} SYP.`,
+                        actionsExecuted,
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+            }
+
+            // 6. إضافة مصروف بالحوار
+            if (/(?:أضف|اضف|سجل|ضفلي|ضف|دفعت|صرفنا|صرفت|مصروف|فاتورة|add|spent|paid)/i.test(normalized)) {
+                const amountMatch = normalized.match(/(\d+(?:\.\d+)?)/);
+                if (amountMatch) {
+                    let amount = Number(amountMatch[1]);
+                    if (/ألف|الف/.test(normalized) && amount < 1000) amount *= 1000;
+                    let name = normalized
+                        .replace(/(?:أضف|اضف|سجل|ضفلي|ضف|دفعت|صرفنا|صرفت|مصروف جديد|مصروف|بمبلغ|بقيمة|بسعر|ليرة|سورية|ألف|الف|اليوم|add|spent|paid)/gi, ' ')
+                        .replace(amountMatch[0], ' ')
+                        .replace(/[،,.:؛!؟?\-+]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    if (!name || name.length < 2) name = 'مصروف عائلي';
+                    const category = inferCategoryLocal(name + ' ' + normalized);
+                    const created = {
+                        id: Date.now(),
+                        name,
+                        amount: Math.round(amount),
+                        category,
+                        date: new Date().toISOString().split('T')[0],
+                        notes: 'أُضيف عبر محادثة Ryn'
+                    };
+                    state.expenses.push(created);
+                    actionsExecuted.push({ type: 'إضافة مصروف' });
+                    return {
+                        text: `✅ أضفت مصروف "${created.name}" بمبلغ ${created.amount.toLocaleString()} ل.س ضمن فئة (${CATEGORY_LABELS.ar[category] || category}).`,
+                        translation: `✅ Added "${created.name}" for ${created.amount.toLocaleString()} SYP.`,
+                        actionsExecuted,
+                        modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+                    };
+                }
+            }
+
+            const total = state.expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+            const dailyAllowance = getDailyGroceryAllowance();
+            return {
+                text: `أهلاً حيدر! مخصص البقالة اليومي هو ${dailyAllowance.toLocaleString()} ل.س، وإجمالي مصاريفنا حتى الآن ${total.toLocaleString()} ل.س من أصل ${state.budget.toLocaleString()} ل.س. يمكنك قولي: "اشتريت كيلو سكر بـ 19000 اعتمد السعر" أو "قسّم ميزانيتي 4 مليون" أو "شو اشتري اليوم بطرطوس؟"`,
+                translation: `Hello Haidar! Daily grocery allowance is ${dailyAllowance.toLocaleString()} SYP, and total spent is ${total.toLocaleString()} SYP of ${state.budget.toLocaleString()} SYP.`,
+                actionsExecuted: [],
+                modelUsed: state.selectedModel === 'auto' ? 'gemini-2.5-flash (Auto)' : state.selectedModel
+            };
+        }
+
+        // ============================================================================
+        // التهيئة والاتصال بالسيرفر والتثبيت الأصلي من متصفح كروم
+        // ============================================================================
+        async function initApplication() {
+            loadLocalMemory();
+
+            const todayInput = document.getElementById('expDate');
+            if (todayInput && !todayInput.value) {
+                todayInput.value = new Date().toISOString().split('T')[0];
+            }
+            const notifTimeEl = document.getElementById('notificationTimeInput');
+            if (notifTimeEl) notifTimeEl.value = state.dailyNotificationTime || '09:00';
+
+            renderApp();
+
+            // تسجيل Service Worker بدون حجب beforeinstallprompt ليظهر خيار التثبيت الأصلي في متصفح كروم تلقائياً
+            if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
+            try {
+                const loginData = await callBackendApi('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username: 'حيدر' })
+                });
+                if (loginData && loginData.token) {
+                    state.token = loginData.token;
+                    const badge = document.getElementById('connectionBadge');
+                    if (badge) {
+                        badge.textContent = loginData.aiStatus?.configuredOnServer ? 'متصل بـ Render Gemini AI' : 'متصل بالسيرفر';
+                    }
+                    const expData = await callBackendApi('/api/expenses');
+                    if (expData && Array.isArray(expData.expenses) && expData.expenses.length > 0) {
+                        state.expenses = expData.expenses;
+                        if (expData.budget) state.budget = expData.budget;
+                        if (expData.categorySplits) state.categorySplits = expData.categorySplits;
+                        if (Array.isArray(expData.priceBook) && expData.priceBook.length > 0) {
+                            state.priceBook = expData.priceBook;
+                        }
+                        renderApp();
+                    }
+                }
+            } catch (_) {
+                const badge = document.getElementById('connectionBadge');
+                if (badge) {
+                    badge.textContent = 'نشط (ذاكرة الجهاز + طرطوس)';
+                }
+            }
+        }
+
+        // ============================================================================
+        // عرض وتحديث كافة أقسام الواجهة
+        // ============================================================================
+        function renderApp() {
+            document.getElementById('htmlRoot').dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('htmlRoot').lang = state.lang;
+            document.getElementById('floatingLangLabel').textContent = state.lang === 'ar' ? 'EN' : 'ع';
+
+            const isEditing = Boolean(document.getElementById('editingExpenseId')?.value);
+            document.getElementById('formTitle').textContent = isEditing ? '✏️ تعديل المصروف المحدد' : '➕ إضافة مصروف جديد';
+            document.getElementById('submitExpenseBtn').textContent = isEditing ? 'تحديث المصروف' : 'حفظ المصروف واعتماد السعر';
+
+            document.getElementById('globalModelSelect').value = state.selectedModel;
+            document.getElementById('chatModelSelect').value = state.selectedModel;
+            document.getElementById('autoFallbackCheck').checked = state.autoFallback;
+            document.getElementById('chatHeaderTitle').textContent = state.chatTitle || 'Ryn - مدير مصاريف طرطوس';
+
+            const verifiedCount = state.priceBook.filter(p => p.userVerified).length;
+            document.getElementById('statVerifiedPricesCount').textContent = `${verifiedCount} من ${state.priceBook.length} سعر معتمد من شرائك`;
+            document.getElementById('statActiveModel').textContent = state.selectedModel === 'auto'
+                ? `Auto (${state.lastModelUsed || 'gemini-2.5-flash'})`
+                : state.selectedModel;
+            document.getElementById('chatActiveModelTag').textContent = state.selectedModel === 'auto' ? 'Auto' : state.selectedModel;
+
+            // الإحصائيات المالية
+            const totalSpent = state.expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            const remaining = state.budget - totalSpent;
+            const percent = state.budget > 0 ? Math.min(100, Math.round((totalSpent / state.budget) * 100)) : 0;
+
+            document.getElementById('statTotalSpent').textContent = formatSyp(totalSpent);
+            document.getElementById('statExpenseCount').textContent = state.expenses.length;
+            document.getElementById('statBudget').textContent = formatSyp(state.budget);
+
+            const remEl = document.getElementById('statRemaining');
+            remEl.textContent = remaining >= 0 ? formatSyp(remaining) : '-' + formatSyp(Math.abs(remaining));
+            remEl.className = remaining >= 0 ? 'text-xl sm:text-2xl font-extrabold text-teal-300' : 'text-xl sm:text-2xl font-extrabold text-rose-400';
+
+            const bar = document.getElementById('budgetProgressBar');
+            bar.style.width = `${percent}%`;
+            bar.className = percent > 90
+                ? 'bg-rose-500 h-full transition-all duration-300'
+                : percent > 75
+                ? 'bg-amber-400 h-full transition-all duration-300'
+                : 'bg-emerald-400 h-full transition-all duration-300';
+
+            // تحديث شريط الإشعار اليومي ومخصص اليوم
+            const dailyAllowance = getDailyGroceryAllowance();
+            document.getElementById('dailyAllowanceBadge').textContent = `مخصص البقالة اليومي: ${formatSyp(dailyAllowance)}`;
+            document.getElementById('dailyFoodAllowanceValue').textContent = `${formatSyp(dailyAllowance)} / يوم`;
+
+            const notifInfo = buildDailyNotificationMessage();
+            document.getElementById('dailyBannerSummary').textContent = notifInfo.body;
+
+            const insightBox = document.getElementById('aiInsightBox');
+            if (insightBox && state.lastAnalysis) {
+                insightBox.textContent = state.insightLang === 'en' && state.lastAnalysis.insightEn
+                    ? state.lastAnalysis.insightEn
+                    : state.lastAnalysis.insight;
+            }
+
+            renderCategorySplits();
+            renderDailyShoppingList();
+            renderExpensesList();
+            renderChart();
+            renderChatMessages();
+            renderMemoryFacts();
+        }
+
+        function renderCategorySplits() {
+            const container = document.getElementById('categorySplitsContainer');
+            if (!container) return;
+
+            const labels = CATEGORY_LABELS[state.lang] || CATEGORY_LABELS.ar;
+            const spentByCat = {};
+            state.expenses.forEach(e => {
+                const c = e.category || 'Other';
+                spentByCat[c] = (spentByCat[c] || 0) + (Number(e.amount) || 0);
+            });
+
+            const categories = ['Food', 'Utilities', 'Transport', 'Health', 'Education', 'Shopping'];
+            container.innerHTML = categories.map(cat => {
+                const pct = Number(state.categorySplits?.[cat]) || 10;
+                const allocated = Math.round((state.budget * pct) / 100);
+                const spent = spentByCat[cat] || 0;
+                const usedPct = allocated > 0 ? Math.min(100, Math.round((spent / allocated) * 100)) : 0;
+
+                return `
+                    <div class="p-2.5 rounded-xl bg-slate-900/85 border border-slate-800 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-white">${labels[cat] || cat} <span class="text-emerald-400">(${pct}%)</span></span>
+                            <span class="text-slate-300 font-semibold">${formatSyp(spent)} / <strong class="text-emerald-300">${formatSyp(allocated)}</strong></span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="${usedPct > 90 ? 'bg-rose-500' : 'bg-emerald-400'} h-full" style="width: ${usedPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDailyShoppingList() {
+            const container = document.getElementById('dailyShoppingListContainer');
+            if (!container) return;
+
+            const itemsToShow = showAllPricesMode
+                ? state.priceBook
+                : state.priceBook.filter(p => state.dailyBasketIds.includes(p.id));
+
+            const list = itemsToShow.length > 0 ? itemsToShow : state.priceBook.slice(0, 5);
+            const totalSuggested = list.reduce((s, i) => s + (Number(i.price) || 0), 0);
+
+            container.innerHTML = `
+                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+                    <span class="text-slate-300 font-semibold">${showAllPricesMode ? '📋 جميع أسعار السلع في طرطوس:' : '🛒 سلة مقاضي اليوم المقترحة لك:'}</span>
+                    <span class="font-extrabold text-emerald-400">مجموع السلة: ${formatSyp(totalSuggested)}</span>
+                </div>
+            ` + list.map(item => `
+                <div class="p-3 rounded-2xl bg-slate-900/85 hover:bg-slate-900 border ${item.userVerified ? 'border-emerald-500/40' : 'border-slate-800'} flex flex-wrap items-center justify-between gap-2.5 transition">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl ${item.userVerified ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-300'} flex items-center justify-center text-sm font-bold">
+                            ${item.userVerified ? '✅' : '📍'}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-white">${escapeHtml(item.name)}</span>
+                                <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">${escapeHtml(item.unit)}</span>
+                            </div>
+                            <div class="text-[11px] mt-0.5 ${item.userVerified ? 'text-emerald-400 font-semibold' : 'text-amber-300/90'}">
+                                ${item.userVerified ? '✅ سعر معتمد من شرائك الفعلي' : '📍 سعر طرطوس التقريبي (عدّله لما تشتري به)'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center bg-slate-950 border border-slate-700 rounded-xl px-2 py-1">
+                            <input id="actualPriceInput_${item.id}" type="number" step="500" min="100" value="${Number(item.price)}" class="w-24 bg-transparent text-xs font-extrabold text-emerald-300 focus:outline-none text-center" title="اكتب السعر الفعلي الذي اشتريت به">
+                            <span class="text-[10px] text-slate-400">ل.س</span>
+                        </div>
+                        <button type="button" onclick="markItemAsPurchased('${item.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow transition">
+                            تم الشراء ✅
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderExpensesList() {
+            const container = document.getElementById('expensesTableContainer');
+            const search = (document.getElementById('searchExpensesInput')?.value || '').trim().toLowerCase();
+            const catFilter = document.getElementById('filterCategorySelect')?.value || 'ALL';
+
+            const filtered = state.expenses.filter(exp => {
+                const matchesCat = catFilter === 'ALL' || exp.category === catFilter;
+                const matchesSearch = !search ||
+                    (exp.name && exp.name.toLowerCase().includes(search)) ||
+                    (exp.notes && exp.notes.toLowerCase().includes(search));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 text-xs rounded-2xl bg-slate-900/50 border border-slate-800/80">
+                        لا توجد مصاريف مطابقة حالياً. اضغط "تم الشراء ✅" من سلة اليوم أو تحدث مع Ryn!
+                    </div>
+                `;
+                return;
+            }
+
+            const labels = CATEGORY_LABELS[state.lang] || CATEGORY_LABELS.ar;
+            container.innerHTML = filtered.slice().reverse().map(exp => `
+                <div class="p-3.5 rounded-2xl bg-slate-900/85 hover:bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 transition">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base font-bold text-emerald-300">
+                            ${(labels[exp.category] || '📦').split(' ')[0]}
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-white">${escapeHtml(exp.name)}</div>
+                            <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">${labels[exp.category] || exp.category}</span>
+                                <span>📅 ${escapeHtml(exp.date || '')}</span>
+                                ${exp.notes ? `<span>• 📝 ${escapeHtml(exp.notes)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm sm:text-base font-extrabold text-emerald-400 px-2">${formatSyp(exp.amount)}</span>
+                        <button type="button" onclick="startEditExpense(${Number(exp.id)})" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition">
+                            ✏️ تعديل
+                        </button>
+                        <button type="button" onclick="handleDeleteExpense(${Number(exp.id)})" class="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold transition">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderChart() {
+            const canvas = document.getElementById('expensesChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const totalsByCat = {};
+            state.expenses.forEach(e => {
+                const c = e.category || 'Other';
+                totalsByCat[c] = (totalsByCat[c] || 0) + (Number(e.amount) || 0);
+            });
+
+            const entries = Object.entries(totalsByCat).sort((a, b) => b[1] - a[1]);
+            const topBadge = document.getElementById('topCategoryBadge');
+            const labelsMap = CATEGORY_LABELS[state.lang] || CATEGORY_LABELS.ar;
+
+            if (entries.length > 0 && topBadge) {
+                topBadge.textContent = `الأعلى: ${labelsMap[entries[0][0]] || entries[0][0]}`;
+            }
+
+            const chartLabels = entries.length ? entries.map(e => labelsMap[e[0]] || e[0]) : ['لا توجد بيانات'];
+            const chartData = entries.length ? entries.map(e => e[1]) : [1];
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: [
+                            '#10b981', '#14b8a6', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b'
+                        ],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#cbd5e1',
+                                font: { family: 'Cairo, Inter, sans-serif', size: 11 },
+                                boxWidth: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================================
+        // عرض وتعديل شاشة الدردشة والرسائل (Editable Chat Screen & Messages)
+        // ============================================================================
+        function renderChatMessages() {
+            const list = document.getElementById('chatMessagesList');
+            if (!list) return;
+
+            const fontClass = state.chatFontSize || 'text-xs';
+
+            list.innerHTML = state.chatHistory.map((msg, index) => {
+                const isUser = msg.sender === 'user';
+                const displayedText = (msg.showTranslation && msg.translation) ? msg.translation : msg.text;
+                const isEditingThis = editingChatIndex === index;
+
+                if (isEditingThis) {
+                    return `
+                        <div class="p-3 rounded-2xl bg-slate-900 border border-emerald-400 space-y-2">
+                            <div class="text-[11px] text-emerald-300 font-bold">✏️ تعديل الرسالة في شاشة الدردشة:</div>
+                            <textarea id="editChatMsgInput_${index}" rows="3" class="w-full p-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none">${escapeHtml(msg.text)}</textarea>
+                            <div class="flex items-center justify-end gap-2">
+                                <button type="button" onclick="cancelEditChatMessage()" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px]">إلغاء</button>
+                                <button type="button" onclick="saveEditedChatMessage(${index}, false)" class="px-2.5 py-1 rounded-lg bg-teal-500 text-slate-950 font-bold text-[11px]">حفظ التعديل</button>
+                                ${isUser ? `<button type="button" onclick="saveEditedChatMessage(${index}, true)" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px]">حفظ وإعادة إرسال لـ Ryn</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="flex items-start gap-2 ${isUser ? 'justify-start' : 'justify-end'}">
+                        ${!isUser ? `
+                            <img src="data:image/png;base64,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" alt="Ryn" class="w-7 h-7 rounded-full object-cover border border-emerald-400/50 shrink-0 mt-1">
+                        ` : ''}
+                        <div class="max-w-[85%] rounded-2xl p-3 ${fontClass} leading-relaxed ${
+                            isUser
+                                ? 'bg-emerald-500 text-slate-950 font-bold rounded-tr-none'
+                                : 'bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-none'
+                        }">
+                            <div class="whitespace-pre-line">${escapeHtml(displayedText)}</div>
+
+                            <div class="mt-2 pt-1.5 border-t ${isUser ? 'border-slate-950/20 text-slate-900' : 'border-slate-800/80 text-slate-400'} flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                <span>${isUser ? '👤 أنت' : '🤖 ' + escapeHtml(msg.modelUsed || 'Ryn AI')}</span>
+                                <div class="flex items-center gap-2">
+                                    ${!isUser && msg.translation ? `<button type="button" onclick="toggleMessageTranslation(${index})" class="hover:underline font-semibold">🌐 ${msg.showTranslation ? 'الأصل' : 'ترجمة'}</button>` : ''}
+                                    <button type="button" onclick="startEditChatMessage(${index})" class="hover:underline font-semibold" title="تعديل نص الرسالة">✏️ تعديل</button>
+                                    <button type="button" onclick="deleteChatMessage(${index})" class="hover:underline font-semibold text-rose-400" title="حذف الرسالة">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            list.scrollTop = list.scrollHeight;
+        }
+
+        function startEditChatMessage(index) {
+            editingChatIndex = index;
+            renderChatMessages();
+        }
+
+        function cancelEditChatMessage() {
+            editingChatIndex = null;
+            renderChatMessages();
+        }
+
+        async function saveEditedChatMessage(index, resendToRyn = false) {
+            const textarea = document.getElementById(`editChatMsgInput_${index}`);
+            if (!textarea || !state.chatHistory[index]) return;
+            const newText = textarea.value.trim();
+            if (!newText) return;
+
+            state.chatHistory[index].text = newText;
+            editingChatIndex = null;
+            await persistMemoryEverywhere();
+            renderChatMessages();
+
+            if (resendToRyn) {
+                const input = document.getElementById('chatInput');
+                if (input) {
+                    input.value = newText;
+                    handleChatSubmit(new Event('submit'));
+                }
+            } else {
+                showToast('✏️ تم تعديل الرسالة في شاشة الدردشة!');
+            }
+        }
+
+        async function deleteChatMessage(index) {
+            state.chatHistory.splice(index, 1);
+            await persistMemoryEverywhere();
+            renderChatMessages();
+        }
+
+        async function clearChatHistory() {
+            state.chatHistory = [
+                {
+                    id: 'welcome-' + Date.now(),
+                    sender: 'ryn',
+                    text: 'تم مسح سجل الدردشة وبدء صفحة جديدة! كيف يمكنني مساعدتك اليوم في مصاريف طرطوس؟',
+                    translation: 'Chat history cleared! How can I help you today with your Tartus expenses?',
+                    showTranslation: false,
+                    modelUsed: state.selectedModel,
+                    timestamp: new Date().toISOString()
+                }
+            ];
+            await persistMemoryEverywhere();
+            renderChatMessages();
+            showToast('🧹 تم مسح سجل المحادثة.');
+        }
+
+        function toggleChatCustomizePanel() {
+            const panel = document.getElementById('chatCustomizePanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function updateChatScreenConfig() {
+            const titleVal = document.getElementById('customChatTitleInput')?.value;
+            const fontVal = document.getElementById('customChatFontSize')?.value;
+            if (titleVal) state.chatTitle = titleVal;
+            if (fontVal) state.chatFontSize = fontVal;
+            persistMemoryEverywhere();
+            renderApp();
+        }
+
+        function cycleChatWindowSize() {
+            const drawer = document.getElementById('rynChatDrawer');
+            const messages = document.getElementById('chatMessagesList');
+            if (!drawer) return;
+
+            if (chatSizeMode === 'normal') {
+                chatSizeMode = 'wide';
+                drawer.className = 'fixed bottom-24 left-5 z-50 w-[95vw] sm:w-[640px] max-h-[86vh] glass-card rounded-3xl shadow-2xl border border-emerald-500/35 flex flex-col overflow-hidden transition-all duration-200';
+                messages.style.maxHeight = '480px';
+                showToast('⤢ تم توسيع شاشة الدردشة للوضع العريض');
+            } else if (chatSizeMode === 'wide') {
+                chatSizeMode = 'fullscreen';
+                drawer.className = 'fixed inset-3 z-50 glass-card rounded-3xl shadow-2xl border border-emerald-500/35 flex flex-col overflow-hidden transition-all duration-200';
+                messages.style.maxHeight = '72vh';
+                showToast('🔲 وضع ملء الشاشة للدردشة');
+            } else {
+                chatSizeMode = 'normal';
+                drawer.className = 'fixed bottom-24 left-5 z-50 w-[94vw] sm:w-[450px] max-h-[82vh] glass-card rounded-3xl shadow-2xl border border-emerald-500/35 flex flex-col overflow-hidden transition-all duration-200';
+                messages.style.maxHeight = '370px';
+                showToast('🗗 تم إرجاع شاشة الدردشة للحجم العادي');
+            }
+        }
+
+        function renderMemoryFacts() {
+            const container = document.getElementById('memoryFactsList');
+            if (!container) return;
+            if (state.memoryFacts.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-500">لا توجد ملاحظات محفوظة بعد.</div>`;
+                return;
+            }
+            container.innerHTML = state.memoryFacts.map((fact, idx) => `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200">
+                    <span>📌 ${escapeHtml(fact)}</span>
+                    <button type="button" onclick="removeMemoryFact(${idx})" class="text-rose-400 hover:text-rose-300 font-bold px-1.5">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================================
+        // إدارة المصاريف وتقسيم الميزانية الشهرية
+        // ============================================================================
+        async function handleQuickBudgetSplit(event) {
+            event.preventDefault();
+            const val = Number(document.getElementById('quickMonthlyBudgetInput').value);
+            if (!Number.isFinite(val) || val <= 0) return;
+
+            state.budget = Math.round(val);
+            document.getElementById('quickMonthlyBudgetInput').value = '';
+            generateNewDailyBasket();
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast(`🎯 تم تقسيم مبلغ ${state.budget.toLocaleString()} ل.س على الفئات وتحديث سلة مشتريات اليوم!`);
+        }
+
+        async function handleExpenseSubmit(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editingExpenseId').value;
+            const name = document.getElementById('expName').value.trim();
+            const amount = Number(document.getElementById('expAmount').value);
+            const category = document.getElementById('expCategory').value;
+            const date = document.getElementById('expDate').value || new Date().toISOString().split('T')[0];
+            const notes = document.getElementById('expNotes').value.trim();
+            const adoptPrice = document.getElementById('adoptPriceCheckbox').checked;
+
+            if (!name || !Number.isFinite(amount) || amount <= 0) {
+                showToast('⚠️ يرجى إدخال اسم مصروف صحيح ومبلغ أكبر من صفر.', 'error');
+                return;
+            }
+
+            if (editId) {
+                const idx = state.expenses.findIndex(e => Number(e.id) === Number(editId));
+                if (idx !== -1) {
+                    state.expenses[idx] = {
+                        ...state.expenses[idx],
+                        name,
+                        amount: Math.round(amount),
+                        category,
+                        date,
+                        notes
+                    };
+                    try {
+                        await callBackendApi(`/api/expenses/${editId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(state.expenses[idx])
+                        });
+                    } catch (_) {}
+                    showToast(`✏️ تم تحديث المصروف "${name}"!`);
+                }
+            } else {
+                const created = {
+                    id: Date.now(),
+                    name,
+                    amount: Math.round(amount),
+                    category,
+                    date,
+                    notes
+                };
+                state.expenses.push(created);
+
+                if (adoptPrice) {
+                    const pIdx = state.priceBook.findIndex(p => p.name === name || name.includes(p.name) || p.name.includes(name));
+                    if (pIdx !== -1) {
+                        state.priceBook[pIdx].price = Math.round(amount);
+                        state.priceBook[pIdx].userVerified = true;
+                    } else {
+                        state.priceBook.push({
+                            id: 'exp-' + Date.now(),
+                            name,
+                            unit: 'وحدة',
+                            price: Math.round(amount),
+                            category,
+                            essential: true,
+                            userVerified: true
+                        });
+                    }
+                }
+
+                try {
+                    await callBackendApi('/api/expenses', {
+                        method: 'POST',
+                        body: JSON.stringify({ ...created, adoptPrice })
+                    });
+                } catch (_) {}
+                showToast(`✅ تمت إضافة "${name}" (${Math.round(amount).toLocaleString()} ل.س) واعتماد سعره!`);
+            }
+
+            resetExpenseForm();
+            await persistMemoryEverywhere();
+            renderApp();
+        }
+
+        function startEditExpense(id) {
+            const exp = state.expenses.find(e => Number(e.id) === Number(id));
+            if (!exp) return;
+            document.getElementById('editingExpenseId').value = exp.id;
+            document.getElementById('expName').value = exp.name || '';
+            document.getElementById('expAmount').value = exp.amount || '';
+            document.getElementById('expCategory').value = exp.category || 'Food';
+            document.getElementById('expDate').value = exp.date || new Date().toISOString().split('T')[0];
+            document.getElementById('expNotes').value = exp.notes || '';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            renderApp();
+            document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetExpenseForm() {
+            document.getElementById('editingExpenseId').value = '';
+            document.getElementById('expName').value = '';
+            document.getElementById('expAmount').value = '';
+            document.getElementById('expCategory').value = 'Food';
+            document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('expNotes').value = '';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            renderApp();
+        }
+
+        async function handleDeleteExpense(id) {
+            const idx = state.expenses.findIndex(e => Number(e.id) === Number(id));
+            if (idx === -1) return;
+            const removed = state.expenses.splice(idx, 1)[0];
+            try {
+                await callBackendApi(`/api/expenses/${id}`, { method: 'DELETE' });
+            } catch (_) {}
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast(`🗑️ تم حذف مصروف "${removed.name}".`, 'info');
+        }
+
+        function toggleBudgetModal(show) {
+            const modal = document.getElementById('budgetModal');
+            if (show) {
+                document.getElementById('budgetInputModal').value = state.budget;
+                document.getElementById('splitFoodInput').value = state.categorySplits.Food ?? 45;
+                document.getElementById('splitUtilitiesInput').value = state.categorySplits.Utilities ?? 15;
+                document.getElementById('splitTransportInput').value = state.categorySplits.Transport ?? 12;
+                document.getElementById('splitHealthInput').value = state.categorySplits.Health ?? 10;
+                document.getElementById('splitEducationInput').value = state.categorySplits.Education ?? 8;
+                document.getElementById('splitShoppingInput').value = state.categorySplits.Shopping ?? 10;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        async function handleBudgetSave(event) {
+            event.preventDefault();
+            const val = Number(document.getElementById('budgetInputModal').value);
+            if (!Number.isFinite(val) || val <= 0) return;
+            state.budget = Math.round(val);
+            state.categorySplits = {
+                Food: Number(document.getElementById('splitFoodInput').value) || 45,
+                Utilities: Number(document.getElementById('splitUtilitiesInput').value) || 15,
+                Transport: Number(document.getElementById('splitTransportInput').value) || 12,
+                Health: Number(document.getElementById('splitHealthInput').value) || 10,
+                Education: Number(document.getElementById('splitEducationInput').value) || 8,
+                Shopping: Number(document.getElementById('splitShoppingInput').value) || 10
+            };
+            try {
+                await callBackendApi('/api/expenses/budget/limit', {
+                    method: 'PUT',
+                    body: JSON.stringify({ budget: state.budget, categorySplits: state.categorySplits })
+                });
+            } catch (_) {}
+            toggleBudgetModal(false);
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast(`🎯 تم تحديث الميزانية الشهرية وتقسيم الفئات!`);
+        }
+
+        // ============================================================================
+        // محادثة Ryn الذكية وتعدد الموديلات والترجمة
+        // ============================================================================
+        function toggleChatDrawer(forceState) {
+            const drawer = document.getElementById('rynChatDrawer');
+            const isHidden = drawer.classList.contains('hidden');
+            const shouldOpen = forceState !== undefined ? forceState : isHidden;
+            if (shouldOpen) {
+                drawer.classList.remove('hidden');
+                setTimeout(() => document.getElementById('chatInput')?.focus(), 100);
+            } else {
+                drawer.classList.add('hidden');
+            }
+        }
+
+        function fillChatInput(text) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+
+        function sendQuickCommand(commandText) {
+            toggleChatDrawer(true);
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = commandText;
+                handleChatSubmit(new Event('submit'));
+            }
+        }
+
+        async function handleChatSubmit(event) {
+            if (event && event.preventDefault) event.preventDefault();
+            const input = document.getElementById('chatInput');
+            const message = (input?.value || '').trim();
+            if (!message) return;
+            input.value = '';
+
+            state.chatHistory.push({
+                id: 'u-' + Date.now(),
+                sender: 'user',
+                text: message,
+                timestamp: new Date().toISOString()
+            });
+            renderChatMessages();
+
+            let replyData = null;
+            try {
+                replyData = await callBackendApi('/api/ryn/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message,
+                        model: state.selectedModel,
+                        autoFallback: state.autoFallback,
+                        apiKey: state.customApiKey || undefined
+                    })
+                });
+                if (replyData && replyData.state) {
+                    state.expenses = replyData.state.expenses || state.expenses;
+                    state.budget = replyData.state.budget || state.budget;
+                    state.priceBook = replyData.state.priceBook || state.priceBook;
+                    state.memoryFacts = replyData.state.memoryFacts || state.memoryFacts;
+                }
+            } catch (_) {
+                replyData = executeLocalConversationalCommand(message);
+            }
+
+            state.lastModelUsed = replyData.modelUsed || 'gemini-2.5-flash';
+            state.chatHistory.push({
+                id: 'r-' + Date.now(),
+                sender: 'ryn',
+                text: replyData.text,
+                translation: replyData.translation || '',
+                showTranslation: state.lang === 'en' && Boolean(replyData.translation),
+                modelUsed: replyData.modelUsed || state.selectedModel,
+                actionsExecuted: replyData.actionsExecuted || [],
+                timestamp: new Date().toISOString()
+            });
+
+            await persistMemoryEverywhere();
+            renderApp();
+        }
+
+        function toggleMessageTranslation(index) {
+            if (!state.chatHistory[index]) return;
+            state.chatHistory[index].showTranslation = !state.chatHistory[index].showTranslation;
+            renderChatMessages();
+        }
+
+        function handleModelChange(newModel) {
+            state.selectedModel = newModel;
+            persistMemoryEverywhere();
+            renderApp();
+            showToast(`🤖 تم ضبط الموديل النشط على: ${newModel === 'auto' ? 'تلقائي ذكي (Auto Failover)' : newModel}`);
+        }
+
+        function toggleAutoFallback(enabled) {
+            state.autoFallback = Boolean(enabled);
+            persistMemoryEverywhere();
+            showToast(state.autoFallback ? '⚡ التبديل التلقائي بين الموديلات مفعّل' : 'تم إيقاف التبديل التلقائي للموديلات', 'info');
+        }
+
+        async function runSmartAnalysis() {
+            const btn = document.getElementById('runAnalyzeBtn');
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await callBackendApi('/api/ai/analyze', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        expenses: state.expenses,
+                        model: state.selectedModel,
+                        autoFallback: state.autoFallback,
+                        apiKey: state.customApiKey || undefined
+                    })
+                });
+                state.lastAnalysis = {
+                    insight: res.insight,
+                    insightEn: res.insightEn || res.insight
+                };
+            } catch (_) {
+                const total = state.expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+                const ratio = state.budget > 0 ? Math.round((total / state.budget) * 100) : 0;
+                const dailyAllowance = getDailyGroceryAllowance();
+                const verifiedCount = state.priceBook.filter(p => p.userVerified).length;
+
+                state.lastAnalysis = {
+                    insight: `📊 تحليل Ryn الذكي لميزانية طرطوس:\n• إجمالي الإنفاق: ${formatSyp(total)} من أصل ${formatSyp(state.budget)} (${ratio}%).\n• مخصص البقالة اليومي: ${formatSyp(dailyAllowance)} يومياً.\n• الأسعار المعتمدة من مشترياتك الفعلية: ${verifiedCount} سلعة.\n• نصيحة Ryn: التزم بسلة اليوم المقترحة (${formatSyp(buildDailyNotificationMessage().totalCost)}) لتوفير 15% إضافية هذا الشهر!`,
+                    insightEn: `📊 Updated Ryn Tartus Analysis:\n• Total Spent: ${formatSyp(total)} of ${formatSyp(state.budget)} (${ratio}%).\n• Daily Grocery Allowance: ${formatSyp(dailyAllowance)}/day.\n• User-verified Tartus prices: ${verifiedCount} items.`
+                };
+            }
+
+            if (btn) btn.disabled = false;
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast('✨ تم تحديث التحليل المالي الذكي!');
+        }
+
+        function toggleInsightLanguage() {
+            state.insightLang = state.insightLang === 'ar' ? 'en' : 'ar';
+            renderApp();
+        }
+
+        function toggleAppLanguage() {
+            state.lang = state.lang === 'ar' ? 'en' : 'ar';
+            state.insightLang = state.lang;
+            state.chatHistory.forEach(m => {
+                if (m.translation) m.showTranslation = (state.lang === 'en');
+            });
+            renderApp();
+            showToast(state.lang === 'ar' ? '🌐 تم التبديل إلى العربية' : '🌐 Switched to English');
+        }
+
+        function toggleMemoryModal(show) {
+            const modal = document.getElementById('memoryModal');
+            if (show) {
+                document.getElementById('customGeminiKeyInput').value = state.customApiKey || '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        async function handleAddMemoryFact(event) {
+            event.preventDefault();
+            const input = document.getElementById('newMemoryFactInput');
+            const fact = (input?.value || '').trim();
+            if (!fact) return;
+            state.memoryFacts.push(fact);
+            input.value = '';
+            await persistMemoryEverywhere();
+            renderApp();
+            showToast('🧠 تمت إضافة المعلومة إلى ذاكرة Ryn وملف الجهاز!');
+        }
+
+        async function removeMemoryFact(index) {
+            state.memoryFacts.splice(index, 1);
+            await persistMemoryEverywhere();
+            renderApp();
+        }
+
+        function saveCustomApiKey() {
+            const val = (document.getElementById('customGeminiKeyInput')?.value || '').trim();
+            state.customApiKey = val;
+            persistMemoryEverywhere();
+            showToast(val ? '🔑 تم حفظ مفتاح Gemini المخصص!' : 'تم الاعتماد على مفتاح Render التلقائي.');
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        window.addEventListener('DOMContentLoaded', initApplication);
+    </script>
+</body>
+</html>
